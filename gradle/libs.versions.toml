@@ -1,0 +1,25 @@
+[versions]
+logback-classic = "1.5.18"
+minestom = "2025.07.10b-1.21.7"
+minimessage = "4.23.0"
+mongodb = "5.5.1"
+polar = "1.14.5"
+schem = "1.3.1"
+slf4j-api = "2.0.17"
+terra = "6.6.5-BETA+cb8aefe8d"
+
+[libraries]
+logback-classic = { module = "ch.qos.logback:logback-classic", version.ref = "logback-classic" }
+minestom = { module = "net.minestom:minestom", version.ref = "minestom" }
+minimessage = { module = "net.kyori:adventure-text-minimessage", version.ref = "minimessage" }
+mongodb = { module = "org.mongodb:mongodb-driver-sync", version.ref = "mongodb" }
+polar = { module = "dev.hollowcube:polar", version.ref = "polar" }
+schem = { module = "dev.hollowcube:schem", version.ref = "schem" }
+slf4j-api = { module = "org.slf4j:slf4j-api", version.ref = "slf4j-api" }
+terra = { module = "com.dfsek.terra:minestom", version.ref = "terra" }
+
+[bundles]
+logger = [
+    "logback-classic",
+    "slf4j-api",
+]
