@@ -22,30 +22,24 @@ public class NavigatorInventory extends Inventory {
     @Override
     public void generate() {
         addClickableItemStack(ItemStack.builder(Material.DIAMOND).lore(Component.text("Left Shift"), Component.text(
-                "Right Shift"), Component.text("Middle Click (Creative only)"), Component.text("DROP")).build(),
+                        "Right Shift"), Component.text("Middle Click (Creative only)"), Component.text("DROP")).build(),
                 click -> {
-            if (click.isLeft() && click.isShift())
-                click.player().sendMessage("Left Shift on Diamond!");
-            if(click.isRight())
-                click.player().sendMessage("Right Click on Diamond!");
-            if(click.isMiddle())
-                click.player().sendMessage("Middle Click on Diamond!");
-            if(click.isDrop())
-                click.player().sendMessage("Drop on Diamond!");
-        });
+                    if (click.isLeft() && click.isShift())
+                        click.player().sendMessage("Left Shift on Diamond!");
+                    if (click.isRight())
+                        click.player().sendMessage("Right Click on Diamond!");
+                    if (click.isMiddle())
+                        click.player().sendMessage("Middle Click on Diamond!");
+                    if (click.isDrop())
+                        click.player().sendMessage("Drop on Diamond!");
+                });
         setClickableItemStack(5, ItemStack.builder(Material.GOLD_INGOT).build(), click -> {
             click.player().sendMessage("Clicked on Gold Ingot!");
             Objects.requireNonNull(GameRegistry.findGame(ClassicFFA.class)).enter(click.player());
         });
 
         setClickableItemStack(18, ItemStack.builder(Material.IRON_INGOT).build(), click -> {
-            new Survival(GameServer.getInstance()).enter(click.player());
-            try {
-                GameRegistry.startGame(Survival.class).enter(click.player());
-            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
-                     IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+            GameRegistry.findGame(Survival.class).enter(click.player());
         });
     }
 }

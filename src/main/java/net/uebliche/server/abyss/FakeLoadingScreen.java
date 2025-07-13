@@ -111,7 +111,8 @@ public class FakeLoadingScreen {
         if (player instanceof GamePlayer gamePlayer) {
             future.complete(true);
         } else {
-            player.sendMessage(mm.deserialize("<red>Error: Player is not a GamePlayer."));
+            player.sendMessage(mm.deserialize("<red>Error: " + player.getClass().getSimpleName() + " is not a " +
+                    "GamePlayer."));
             future.complete(false);
         }
     }

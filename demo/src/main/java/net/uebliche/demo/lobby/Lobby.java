@@ -19,6 +19,7 @@ import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
 import net.uebliche.demo.DemoServer;
+import net.uebliche.demo.commands.ClassicFFACommand;
 import net.uebliche.demo.lobby.inventory.NavigatorInventory;
 import net.uebliche.mode.Mode;
 import net.uebliche.mode.ModeSettings;
@@ -41,7 +42,6 @@ public class Lobby extends Mode<ModeSettings> {
         instanceContainer = createInstance();
         instanceContainer.eventNode().addChild(ItemActionRegistry.eventNode());
         //new ZombieCreature().setInstance(instanceContainer, new Pos(0, 5, 0));
-
     }
 
     Item navigator = new Item.Builder(Material.COMPASS)
@@ -62,7 +62,7 @@ public class Lobby extends Mode<ModeSettings> {
                     EquipmentSlotGroup.MAIN_HAND)
             .withActionHandler(action -> {
                 action.drop().ifPresent(drop -> {
-                    drop.cancel().accept(true);
+                    action.setCancel(true);
                 });
                 action.block().ifPresent(block -> {
 

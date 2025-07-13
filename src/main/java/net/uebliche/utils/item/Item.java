@@ -18,6 +18,7 @@ import net.minestom.server.tag.Tag;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.time.Duration;
 import java.util.*;
 import java.util.function.Consumer;
 
@@ -87,34 +88,93 @@ public class Item {
             Optional<BlockAction> block,
             Optional<EntityAction> entity,
             Optional<UseAction> use,
-            Optional<DropAction> drop
+            Optional<DropAction> drop,
+            Optional<Consumer<Boolean>> cancel
     ) {
+
+        public static class Builder {
+            private Player player;
+            private BlockAction blockAction;
+            private EntityAction entityAction;
+            private UseAction useAction;
+            private DropAction dropAction;
+            private Consumer<Boolean> cancel;
+
+            public Builder(Player player) {
+                this.player = player;
+            }
+
+            public Builder block(BlockAction blockAction) {
+                this.blockAction = blockAction;
+                return this;
+            }
+
+            public Builder entity(EntityAction entityAction) {
+                this.entityAction = entityAction;
+                return this;
+            }
+
+            public Builder use(UseAction useAction) {
+                this.useAction = useAction;
+                return this;
+            }
+
+            public Builder drop(DropAction dropAction) {
+                this.dropAction = dropAction;
+                return this;
+            }
+
+            public Builder cancel(Consumer<Boolean> cancel) {
+                this.cancel = cancel;
+                return this;
+            }
+
+            public Action build() {
+                return new Action(
+                        player,
+                        Optional.ofNullable(blockAction),
+                        Optional.ofNullable(entityAction),
+                        Optional.ofNullable(useAction),
+                        Optional.ofNullable(dropAction),
+                        Optional.ofNullable(cancel)
+                );
+            }
+
+        }
+
         public static Action block(Player player, BlockAction blockAction) {
-            return new Action(player, Optional.of(blockAction), Optional.empty(), Optional.empty(), Optional.empty());
+            return new Action.Builder(player).block(blockAction).build();
         }
 
-        public static Action entity(Player player, EntityAction entityAction) {
-            return new Action(player, Optional.empty(), Optional.of(entityAction), Optional.empty(), Optional.empty());
+        public static Action entity(Player player, EntityAction entityAction, Consumer<Boolean> cancel) {
+            return new Action.Builder(player).entity(entityAction).cancel(cancel).build();
         }
 
-        public static Action using(Player player, PlayerHand playerHand, long itemUseTime) {
-            return new Action(player, Optional.empty(), Optional.empty(), Optional.of(UseAction.Using(playerHand, itemUseTime)), Optional.empty());
-        }
-
-        public static Action finishUsing(Player player, PlayerHand playerHand, long useDuration) {
-            return new Action(player, Optional.empty(), Optional.empty(), Optional.of(UseAction.Finished(playerHand,
-                    useDuration)), Optional.empty());
+        public static Action using(Player player, PlayerHand playerHand, long itemUseTime, Consumer<Boolean> cancel,
+                                   Consumer<Long> setItemUseTime) {
+            return new Action.Builder(player).use(UseAction.Using(playerHand, itemUseTime, setItemUseTime)).cancel(cancel).build();
 
         }
 
-        public static Action cancelUsing(Player player, PlayerHand playerHand, long useDuration) {
-            return new Action(player, Optional.empty(), Optional.empty(), Optional.of(UseAction.Cancelled(playerHand,
-                    useDuration)), Optional.empty());
+        public static Action finishUsing(Player player, PlayerHand playerHand, long useDuration, Consumer<Boolean> startRiptide) {
+            return new Builder(player).use(UseAction.Finished(playerHand, useDuration)).build();
+        }
+
+        public static Action cancelUsing(Player player, PlayerHand playerHand, long useDuration,
+                                         Consumer<Boolean> startRiptide) {
+            return new Builder(player).use(UseAction.Cancelled(playerHand, useDuration)).build();
         }
 
         public static Action drop(Player player, Consumer<Boolean> cancel) {
-            return new Action(player, Optional.empty(), Optional.empty(), Optional.empty(),
-                    Optional.of(new DropAction(cancel)));
+            return new Builder(player).drop(new DropAction()).cancel(cancel).build();
+        }
+
+        public void applyCooldown(Duration duration) {
+            //TODO: implement
+        }
+
+        public void setCancel(boolean cancel) {
+
         }
     }
 
@@ -122,19 +182,21 @@ public class Item {
             PlayerHand hand,
             State state,
             long useTime,
-            long useDuration
+            long useDuration,
+            Consumer<Boolean> startRiptide,
+            Consumer<Long> setItemUseTime
     ) {
 
         static UseAction Finished(PlayerHand hand, long useDuration) {
-            return new UseAction(hand, State.FINISHED, -1, useDuration);
+            return new UseAction(hand, State.FINISHED, -1, useDuration, null, null);
         }
 
         static UseAction Cancelled(PlayerHand hand, long useDuration) {
-            return new UseAction(hand, State.CANCELLED, -1, useDuration);
+            return new UseAction(hand, State.CANCELLED, -1, useDuration, null, null);
         }
 
-        static UseAction Using(PlayerHand hand, long itemUseTime) {
-            return new UseAction(hand, State.USING, itemUseTime, -1);
+        static UseAction Using(PlayerHand hand, long itemUseTime, Consumer<Long> setItemUseTime) {
+            return new UseAction(hand, State.USING, itemUseTime, -1, null, setItemUseTime);
         }
     }
 
@@ -156,7 +218,6 @@ public class Item {
     }
 
     public static record DropAction(
-            Consumer<Boolean> cancel
     ) {
     }
 

@@ -21,14 +21,28 @@ public final class ItemActionRegistry {
                 .addListener(ItemDropEvent.class, event -> Item.fromItemStack(event.getItemStack()).ifPresent(item ->
                         item.call(Item.Action.drop(event.getPlayer(), event::setCancelled))))
                 .addListener(PlayerUseItemOnBlockEvent.class, event -> Item.fromItemStack(event.getItemStack()).ifPresent(item ->
-                        item.call(Item.Action.block(event.getPlayer(), new Item.BlockAction(event.getBlockFace(),
-                                event.getPosition())))))
+                        item.call(Item.Action.block(
+                                        event.getPlayer(),
+                                        new Item.BlockAction(
+                                                event.getBlockFace(),
+                                                event.getPosition()
+                                        )
+                                )
+                        )
+                ))
                 .addListener(PlayerUseItemEvent.class, event -> Item.fromItemStack(event.getItemStack()).ifPresent(item ->
-                        item.call(Item.Action.using(event.getPlayer(), event.getHand(), event.getItemUseTime()))))
+                        item.call(Item.Action.using(event.getPlayer(), event.getHand(), event.getItemUseTime(),
+                                event::setCancelled, event::setItemUseTime))))
                 .addListener(PlayerFinishItemUseEvent.class, event -> Item.fromItemStack(event.getItemStack()).ifPresent(item ->
-                        item.call(Item.Action.finishUsing(event.getPlayer(), event.getHand(), event.getUseDuration()))))
+                        item.call(Item.Action.finishUsing(event.getPlayer(), event.getHand(), event.getUseDuration(),
+                                aBoolean -> {
+                                }
+                        ))))
                 .addListener(PlayerCancelItemUseEvent.class, event -> Item.fromItemStack(event.getItemStack()).ifPresent(item ->
-                        item.call(Item.Action.cancelUsing(event.getPlayer(), event.getHand(), event.getUseDuration()))))
+                        item.call(Item.Action.cancelUsing(event.getPlayer(), event.getHand(), event.getUseDuration(),
+                                _ -> {
+                                }
+                        ))))
                 ;
     }
 }
