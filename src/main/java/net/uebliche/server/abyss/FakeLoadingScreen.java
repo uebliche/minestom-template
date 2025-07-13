@@ -6,6 +6,9 @@ import net.kyori.adventure.title.Title;
 import net.kyori.adventure.title.TitlePart;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
+import net.minestom.server.event.EventListener;
+import net.minestom.server.event.EventNode;
+import net.minestom.server.event.player.PlayerLoadedEvent;
 import net.minestom.server.timer.Task;
 import net.minestom.server.timer.TaskSchedule;
 import net.uebliche.server.GamePlayer;
@@ -13,6 +16,7 @@ import net.uebliche.server.GameServer;
 
 import java.time.Duration;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class FakeLoadingScreen {
@@ -32,10 +36,26 @@ public class FakeLoadingScreen {
     private boolean waitingForLoad = false;
     private Task task;
     private int animationTick = 0;
+    private CompletableFuture<Boolean> future;
 
-    public FakeLoadingScreen(Player player) {
+    public FakeLoadingScreen(Player player, CompletableFuture<Boolean> future) {
         this.player = player;
+        player.eventNode().addListener(EventListener
+                .builder(PlayerLoadedEvent.class)
+                .expireCount(1)
+                .handler(playerLoadedEvent -> {
+                    isLoaded = true;
+                })
+                .build()
+        );
+        this.future = future;
         start();
+    }
+
+    public static CompletableFuture<Boolean> load(Player player) {
+        CompletableFuture<Boolean> future = new CompletableFuture<>();
+        var loading = new FakeLoadingScreen(player, future);
+        return future;
     }
 
     private void start() {
@@ -89,9 +109,10 @@ public class FakeLoadingScreen {
     public void onFinish() {
         task.cancel();
         if (player instanceof GamePlayer gamePlayer) {
-            GameServer.getInstance().getLobby().enter(gamePlayer);
+            future.complete(true);
         } else {
             player.sendMessage(mm.deserialize("<red>Error: Player is not a GamePlayer."));
+            future.complete(false);
         }
     }
 }

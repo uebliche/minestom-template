@@ -3,7 +3,7 @@ import org.gradle.api.tasks.JavaExec
 import org.gradle.api.tasks.compile.JavaCompile
 
 plugins {
-    id("java")
+    id("java-library")
     id("nl.littlerobots.version-catalog-update") version "1.0.0"
 }
 
@@ -33,13 +33,15 @@ tasks.withType<JavaCompile>().configureEach {
 }
 
 dependencies {
-    implementation(libs.minestom)
-    implementation(libs.minimessage)
+    api(libs.jetbrainsAnnotations)
+    api(libs.minestom)
+    api(libs.minimessage)
+    api(libs.mongodb)
     implementation(libs.mongodb)
-    implementation(libs.polar)
-    implementation(libs.schem)
-    implementation(libs.terra)
-    implementation(libs.bundles.logger)
+    api(libs.polar)
+    api(libs.schem)
+    api(libs.terra)
+    api(libs.bundles.logger)
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
 }

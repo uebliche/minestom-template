@@ -1,4 +1,4 @@
-package net.uebliche.mode.lobby;
+package net.uebliche.demo.lobby;
 
 import net.kyori.adventure.key.Key;
 import net.kyori.adventure.key.Namespaced;
@@ -10,7 +10,6 @@ import net.minestom.server.entity.EquipmentSlotGroup;
 import net.minestom.server.entity.GameMode;
 import net.minestom.server.entity.PlayerHand;
 import net.minestom.server.entity.attribute.Attribute;
-import net.minestom.server.entity.attribute.AttributeModifier;
 import net.minestom.server.entity.attribute.AttributeOperation;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.event.entity.EntityDamageEvent;
@@ -20,23 +19,19 @@ import net.minestom.server.instance.LightingChunk;
 import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.Material;
-import net.minestom.server.item.component.AttributeList;
-import net.minestom.server.registry.RegistryData;
 import net.minestom.server.sound.SoundEvent;
+import net.uebliche.demo.lobby.inventory.NavigatorInventory;
 import net.uebliche.mode.Mode;
 import net.uebliche.mode.ModeSettings;
 import net.uebliche.server.GamePlayer;
 import net.uebliche.server.GameServer;
-import net.uebliche.server.entity.ZombieCreature;
 import net.uebliche.utils.item.Equipment;
 import net.uebliche.utils.item.Item;
 import net.uebliche.utils.item.ItemActionRegistry;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
-import org.xml.sax.helpers.AttributesImpl;
 
 import java.util.Objects;
-import java.util.Properties;
 import java.util.concurrent.ThreadLocalRandom;
 
 public class Lobby extends Mode<ModeSettings> {
@@ -77,6 +72,7 @@ public class Lobby extends Mode<ModeSettings> {
                 action.use().ifPresent(useAction -> {
                     if (useAction.hand() == PlayerHand.MAIN) {
                         action.player().sendMessage("You used the compass!");
+                        action.player().openInventory(new NavigatorInventory());
                     }
                 });
             })

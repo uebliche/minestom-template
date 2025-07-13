@@ -1,9 +1,8 @@
 package net.uebliche.game;
 
-import net.minestom.server.instance.InstanceContainer;
-import net.uebliche.mode.Mode;
-import net.uebliche.mode.ModeSettings;
 import net.uebliche.server.GameServer;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
 import java.util.ArrayList;
@@ -13,13 +12,14 @@ import java.util.UUID;
 
 public final class GameRegistry {
 
-    private static final List<Class<? extends Game<GameSettings>>> gameClazzs = new ArrayList<>();
-    private static final HashMap<Class<? extends Game<GameSettings>>, HashMap<UUID, ? extends Game<GameSettings>>> gameInstances = new HashMap<>();
+    private static final List<Class<? extends Game<?>>> gameClazzs = new ArrayList<>();
+    private static final HashMap<Class<? extends Game<?>>, HashMap<UUID, ? extends Game<?>>> gameInstances = new HashMap<>();
 
-    private static final HashMap<UUID, Game<GameSettings>> gamesById = new HashMap<>();
+    private static final HashMap<UUID, Game<?>> gamesById = new HashMap<>();
+    private static final Logger log = LoggerFactory.getLogger(GameRegistry.class);
 
 
-    public static void registerGame(Class<? extends Game<GameSettings>> gameClazz) {
+    public static void registerGame(Class<? extends Game<?>> gameClazz) {
         gameClazzs.add(gameClazz);
     }
 
@@ -27,7 +27,7 @@ public final class GameRegistry {
         gamesById.put(game.getId(), game);
     }
 
-    public static Game<GameSettings> get(UUID uuid){
+    public static Game<GameSettings> get(UUID uuid) {
         return (Game<GameSettings>) gamesById.get(uuid);
     }
 
@@ -35,9 +35,11 @@ public final class GameRegistry {
         gamesById.remove(uuid);
     }
 
-    public static <G extends Game<GameSettings>> G startGame(Class<G> gameClazz) throws NoSuchMethodException, InvocationTargetException,
+    public static <G extends Game<?>> G startGame(Class<G> gameClazz) throws NoSuchMethodException,
+            InvocationTargetException,
             InstantiationException, IllegalAccessException {
         if (!gameClazzs.contains(gameClazz)) {
+            log.error("Game class {} not registered", gameClazz);
             throw new IllegalArgumentException("Game class not registered");
         }
         var game = gameClazz.getConstructor(GameServer.class).newInstance(GameServer.getInstance());
@@ -45,4 +47,24 @@ public final class GameRegistry {
         return game;
     }
 
+    public static <G extends Game<?>> G findGame(Class<G> gameClass) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+        if (!gameClazzs.contains(gameClass)) {
+            log.error("Game class {} not registered", gameClass);
+            throw new IllegalArgumentException("Game class not registered");
+        }
+        var game = gameInstances.get(gameClass);
+        if (game == null) {
+            game = new HashMap<>();
+            gameInstances.put(gameClass, game);
+        } else {
+            var gameInstance = game.values().stream().findAny().orElse(null);
+            if (gameInstance != null) {
+                return (G) gameInstance;
+            } else {
+                return startGame(gameClass);
+            }
+        }
+        return null;
+
+    }
 }

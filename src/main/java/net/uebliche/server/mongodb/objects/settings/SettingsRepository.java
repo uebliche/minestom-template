@@ -1,7 +1,6 @@
 package net.uebliche.server.mongodb.objects.settings;
 
 import com.mongodb.client.MongoCollection;
-import net.uebliche.game.ffa.ClassicFFASettings;
 import net.uebliche.mode.ModeSettings;
 import net.uebliche.server.mongodb.objects.Repository;
 import org.bson.types.ObjectId;

@@ -1,12 +1,17 @@
-package net.uebliche.mode.lobby.inventory;
+package net.uebliche.demo.lobby.inventory;
 
 import net.kyori.adventure.text.Component;
 import net.minestom.server.inventory.InventoryType;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.item.Material;
-import net.uebliche.game.survival.Survival;
+import net.uebliche.demo.game.ffa.ClassicFFA;
+import net.uebliche.demo.game.survival.Survival;
+import net.uebliche.game.GameRegistry;
 import net.uebliche.server.GameServer;
 import net.uebliche.utils.inventory.Inventory;
+
+import java.lang.reflect.InvocationTargetException;
+import java.util.Objects;
 
 public class NavigatorInventory extends Inventory {
 
@@ -30,11 +35,22 @@ public class NavigatorInventory extends Inventory {
         });
         setClickableItemStack(5, ItemStack.builder(Material.GOLD_INGOT).build(), click -> {
             click.player().sendMessage("Clicked on Gold Ingot!");
+            try {
+                Objects.requireNonNull(GameRegistry.findGame(ClassicFFA.class)).enter(click.player());
+            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
+                     IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         });
 
         setClickableItemStack(18, ItemStack.builder(Material.IRON_INGOT).build(), click -> {
             new Survival(GameServer.getInstance()).enter(click.player());
-///            GameRegistry.startGame(Survival.class).enter(click.player());
+            try {
+                GameRegistry.startGame(Survival.class).enter(click.player());
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                     IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         });
     }
 }

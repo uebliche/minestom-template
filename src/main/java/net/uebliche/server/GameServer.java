@@ -13,11 +13,11 @@ import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.extras.MojangAuth;
 import net.minestom.server.network.packet.client.play.ClientChangeGameModePacket;
+import net.minestom.server.network.player.GameProfile;
+import net.minestom.server.network.player.PlayerConnection;
 import net.uebliche.mode.ModeSettings;
-import net.uebliche.mode.lobby.Lobby;
 import net.uebliche.server.abyss.Abyss;
 import net.uebliche.server.commands.GameModeCommand;
-import net.uebliche.server.commands.LeaveCommand;
 import net.uebliche.server.commands.StopCommand;
 import net.uebliche.server.commands.SurvivalCommand;
 import net.uebliche.server.mongodb.codec.InstantCodec;
@@ -33,18 +33,18 @@ import org.bson.UuidRepresentation;
 import org.bson.codecs.configuration.CodecRegistries;
 import org.bson.codecs.configuration.CodecRegistry;
 import org.bson.codecs.pojo.PojoCodecProvider;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public final class GameServer {
+public abstract class GameServer<P extends GamePlayer> {
 
-    private static final Logger log = LoggerFactory.getLogger(GameServer.class);
-    private static GameServer instance;
+    private final Logger log = LoggerFactory.getLogger(GameServer.class);
 
-    private UserRepository userRepository;
-    private SettingsRepository settingsRepository;
-    private WorldRepository worldRepository;
-    private BanRepository banRepository;
+    protected UserRepository userRepository;
+    protected SettingsRepository settingsRepository;
+    protected WorldRepository worldRepository;
+    protected BanRepository banRepository;
 
     private static final String HOST = System.getenv().getOrDefault("HOST", "0.0.0.0");
     private static final Integer PORT = Integer.parseInt(System.getenv().getOrDefault("PORT", "25565"));
@@ -52,11 +52,13 @@ public final class GameServer {
     private static final String MONGODB_URI = System.getenv().getOrDefault("MONGODB_URI", "mongodb://localhost:27017");
     private static final String MONGODB_DATABASE = System.getenv().getOrDefault("MONGODB_DATABASE", "minestom");
 
-    private final Abyss abyss;
-    private final Lobby lobby;
+    private final Abyss<P> abyss;
 
+    private static GameServer instance;
 
-    private GameServer() {
+    public GameServer() {
+        if (instance != null)
+            throw new IllegalStateException("Only one instance of GameServer is allowed");
         instance = this;
         MinecraftServer.setCompressionThreshold(0);
         MinecraftServer minecraftServer = MinecraftServer.init();
@@ -64,27 +66,30 @@ public final class GameServer {
 
         setupDatabaseConnection();
 
-        abyss = new Abyss(this);
-        lobby = new Lobby(this);
-
-        //GameRegistry.registerGame(Survival.class);
+        abyss = new Abyss<P>(this, this::onPlayerLoaded);
 
         registerGlobalEventListeners();
         registerCommands();
-        registerPlayerProvider();
+        MinecraftServer.getConnectionManager()
+                .setPlayerProvider(this::getPlayerProvider);
 
         minecraftServer.start(HOST, PORT);
     }
 
+    public static GameServer getInstance() {
+        return instance;
+    }
+
+    protected abstract @NotNull P getPlayerProvider(@NotNull PlayerConnection playerConnection,
+                                                    @NotNull GameProfile gameProfile);
+
+    protected abstract void onPlayerLoaded(P player, Boolean success);
+
     private void registerGlobalEventListeners() {
         MinecraftServer.getGlobalEventHandler()
                 .addListener(AsyncPlayerConfigurationEvent.class, event -> {
-                    MinecraftServer.getInstanceManager().getInstances().stream().findFirst().ifPresentOrElse(instance -> {
-                        event.setSpawningInstance(abyss);
-                        event.getPlayer().setPermissionLevel(3);
-                    }, () -> {
-                        log.warn("Failed to find instance to spawn player");
-                    });
+                    event.setSpawningInstance(abyss);
+                    event.getPlayer().setPermissionLevel(3);
                 })
                 .addListener(PlayerMoveEvent.class, event -> {
                     var player = event.getPlayer();
@@ -102,10 +107,6 @@ public final class GameServer {
                     player.setGameMode(packet.gameMode());
 
                 });
-    }
-
-    public Lobby getLobby() {
-        return lobby;
     }
 
     private void setupDatabaseConnection() {
@@ -131,43 +132,11 @@ public final class GameServer {
 
     }
 
-
-    private void registerPlayerProvider() {
-        MinecraftServer.getConnectionManager()
-                .setPlayerProvider(
-                        (playerConnection, gameProfile) -> {
-                            var player = new GamePlayer(
-                                    playerConnection,
-                                    gameProfile,
-                                    userRepository
-                                            .findOrCreate(gameProfile)
-                                            .join()
-                            );
-                            userRepository.incrementLoginCount(gameProfile.uuid()).thenAccept(user -> {
-                                log.debug("Login Count for {} +1", player.getUsername());
-                            });
-                            return player;
-                        }
-                );
-    }
-
     private void registerCommands() {
         var commandManager = MinecraftServer.getCommandManager();
         commandManager.register(new GameModeCommand());
         commandManager.register(new StopCommand());
-        commandManager.register(new LeaveCommand());
         commandManager.register(new SurvivalCommand());
-    }
-
-    public static GameServer init() {
-        if (instance != null) {
-            throw new IllegalStateException("GameServer already initialized");
-        }
-        return new GameServer();
-    }
-
-    public static GameServer getInstance() {
-        return instance;
     }
 
     public UserRepository getUserRepository() {
