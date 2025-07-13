@@ -6,11 +6,19 @@ import net.minestom.server.entity.Player;
 import net.uebliche.demo.game.survival.SurvivalContainer;
 
 public class HealCommand extends Command {
+
     public HealCommand() {
         super("heal");
+
         setCondition(Conditions::playerOnly);
-        setCondition(SurvivalContainer::isInContainer);
+        setCondition(SurvivalContainer::isInSurvival);
+
         addSyntax((sender, context) -> {
+            if(sender instanceof Player player){
+                player.heal();
+            }
+        });
+        setDefaultExecutor((sender, context) -> {
             if(sender instanceof Player player){
                 player.heal();
             }

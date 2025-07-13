@@ -79,7 +79,7 @@ public class SurvivalContainer extends InstanceContainer {
         return worldSpawn;
     }
 
-    public static boolean isInContainer(@NotNull CommandSender commandSender, @Nullable String s) {
+    public static boolean isInSurvival(@NotNull CommandSender commandSender, @Nullable String s) {
         if (commandSender instanceof Player player) {
             return player.getInstance() instanceof SurvivalContainer;
         }
