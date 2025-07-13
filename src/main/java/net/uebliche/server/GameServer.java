@@ -6,12 +6,14 @@ import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import net.minestom.server.MinecraftServer;
+import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
 import net.minestom.server.event.instance.AddEntityToInstanceEvent;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.extras.MojangAuth;
+import net.minestom.server.instance.InstanceManager;
 import net.minestom.server.network.packet.client.play.ClientChangeGameModePacket;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
@@ -46,6 +48,10 @@ public abstract class GameServer<P extends GamePlayer> {
     protected WorldRepository worldRepository;
     protected BanRepository banRepository;
 
+    protected CommandManager commandManager;
+    protected InstanceManager instanceManager;
+
+
     private static final String HOST = System.getenv().getOrDefault("HOST", "0.0.0.0");
     private static final Integer PORT = Integer.parseInt(System.getenv().getOrDefault("PORT", "25565"));
     // Visit https://cloud.mongodb.com to get your own DB for free online at MongoDB
@@ -63,6 +69,9 @@ public abstract class GameServer<P extends GamePlayer> {
         MinecraftServer.setCompressionThreshold(0);
         MinecraftServer minecraftServer = MinecraftServer.init();
         MojangAuth.init();
+
+        instanceManager = MinecraftServer.getInstanceManager();
+        commandManager = MinecraftServer.getCommandManager();
 
         setupDatabaseConnection();
 

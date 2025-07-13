@@ -56,15 +56,12 @@ public final class GameRegistry {
         if (game == null) {
             game = new HashMap<>();
             gameInstances.put(gameClass, game);
-        } else {
-            var gameInstance = game.values().stream().findAny().orElse(null);
-            if (gameInstance != null) {
-                return (G) gameInstance;
-            } else {
-                return startGame(gameClass);
-            }
         }
-        return null;
-
+        var gameInstance = game.values().stream().findAny().orElse(null);
+        if (gameInstance != null) {
+            return (G) gameInstance;
+        } else {
+            return startGame(gameClass);
+        }
     }
 }

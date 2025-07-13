@@ -7,13 +7,13 @@ import net.uebliche.server.GamePlayer;
 
 public class LeaveCommand extends Command {
 
-    public LeaveCommand() {
+    public LeaveCommand(Lobby lobby) {
         super("leave", "lobby");
         setCondition(Conditions::playerOnly);
         setCondition(Lobby::isNotInLobby);
         setDefaultExecutor((sender, context) -> {
             GamePlayer player = (GamePlayer) sender;
-           // GameServer.getInstance().getLobby().enter(player);
+            lobby.enter(player);
         });
     }
 

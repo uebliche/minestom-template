@@ -1,8 +1,10 @@
 package net.uebliche.demo;
 
+import net.minestom.server.MinecraftServer;
 import net.minestom.server.entity.Player;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
+import net.uebliche.demo.commands.LeaveCommand;
 import net.uebliche.demo.game.ffa.ClassicFFA;
 import net.uebliche.demo.game.ffa.ClassicFFASettings;
 import net.uebliche.demo.game.survival.Survival;
@@ -30,6 +32,7 @@ public class DemoServer extends GameServer<DemoPlayer> {
         testSettings();
         GameRegistry.registerGame(Survival.class);
         GameRegistry.registerGame(ClassicFFA.class);
+        commandManager.register(new LeaveCommand(lobby));
     }
 
     @Override

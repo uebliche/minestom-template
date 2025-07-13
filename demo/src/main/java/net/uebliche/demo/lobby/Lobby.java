@@ -1,7 +1,5 @@
 package net.uebliche.demo.lobby;
 
-import net.kyori.adventure.key.Key;
-import net.kyori.adventure.key.Namespaced;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.coordinate.Pos;
@@ -20,11 +18,11 @@ import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.instance.block.Block;
 import net.minestom.server.item.Material;
 import net.minestom.server.sound.SoundEvent;
+import net.uebliche.demo.DemoServer;
 import net.uebliche.demo.lobby.inventory.NavigatorInventory;
 import net.uebliche.mode.Mode;
 import net.uebliche.mode.ModeSettings;
 import net.uebliche.server.GamePlayer;
-import net.uebliche.server.GameServer;
 import net.uebliche.utils.item.Equipment;
 import net.uebliche.utils.item.Item;
 import net.uebliche.utils.item.ItemActionRegistry;
@@ -38,7 +36,7 @@ public class Lobby extends Mode<ModeSettings> {
 
     InstanceContainer instanceContainer;
 
-    public Lobby(GameServer gameServer) {
+    public Lobby(DemoServer gameServer) {
         super(gameServer);
         instanceContainer = createInstance();
         instanceContainer.eventNode().addChild(ItemActionRegistry.eventNode());
