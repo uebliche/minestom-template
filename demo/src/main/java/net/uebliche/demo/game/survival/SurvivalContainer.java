@@ -19,6 +19,7 @@ import net.minestom.server.instance.anvil.AnvilLoader;
 import net.minestom.server.item.ItemStack;
 import net.minestom.server.utils.time.TimeUnit;
 import net.minestom.server.world.DimensionType;
+import net.uebliche.server.GamePlayer;
 import org.jetbrains.annotations.NotNull;
 import org.jetbrains.annotations.Nullable;
 
@@ -80,9 +81,8 @@ public class SurvivalContainer extends InstanceContainer {
     }
 
     public static boolean isInSurvival(@NotNull CommandSender commandSender, @Nullable String s) {
-        if (commandSender instanceof Player player) {
-            return player.getInstance() instanceof SurvivalContainer;
-        }
+        if (!(commandSender instanceof GamePlayer player)) return false;
+        if (player.getMode() instanceof Survival survival) return true;
         return false;
     }
 }

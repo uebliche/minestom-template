@@ -3,6 +3,7 @@ package net.uebliche.demo.game.survival;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.coordinate.Pos;
 import net.minestom.server.instance.InstanceContainer;
+import net.uebliche.demo.game.survival.commands.HealCommand;
 import net.uebliche.game.Game;
 import net.uebliche.server.GamePlayer;
 import net.uebliche.server.GameServer;
@@ -22,6 +23,7 @@ public class Survival extends Game<SurvivalSettings> {
     public Survival(GameServer gameServer) {
         super(gameServer);
         instanceContainer = createInstance();
+        commandManager.register(new HealCommand(this));
     }
 
     @Override

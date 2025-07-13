@@ -7,9 +7,7 @@ import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
-import net.minestom.server.entity.Player;
 import net.minestom.server.entity.damage.DamageType;
-import net.minestom.server.event.instance.AddEntityToInstanceEvent;
 import net.minestom.server.event.player.AsyncPlayerConfigurationEvent;
 import net.minestom.server.event.player.PlayerMoveEvent;
 import net.minestom.server.extras.MojangAuth;
@@ -21,7 +19,6 @@ import net.uebliche.mode.ModeSettings;
 import net.uebliche.server.abyss.Abyss;
 import net.uebliche.server.commands.GameModeCommand;
 import net.uebliche.server.commands.StopCommand;
-import net.uebliche.server.commands.SurvivalCommand;
 import net.uebliche.server.mongodb.codec.InstantCodec;
 import net.uebliche.server.mongodb.codec.LocaleCodec;
 import net.uebliche.server.mongodb.objects.ban.Ban;
@@ -52,8 +49,8 @@ public abstract class GameServer<P extends GamePlayer> {
     protected InstanceManager instanceManager;
 
 
-    private static final String HOST = System.getenv().getOrDefault("HOST", "0.0.0.0");
-    private static final Integer PORT = Integer.parseInt(System.getenv().getOrDefault("PORT", "25565"));
+    protected static final String HOST = System.getenv().getOrDefault("HOST", "0.0.0.0");
+    protected static final Integer PORT = Integer.parseInt(System.getenv().getOrDefault("PORT", "25565"));
     // Visit https://cloud.mongodb.com to get your own DB for free online at MongoDB
     private static final String MONGODB_URI = System.getenv().getOrDefault("MONGODB_URI", "mongodb://localhost:27017");
     private static final String MONGODB_DATABASE = System.getenv().getOrDefault("MONGODB_DATABASE", "minestom");
@@ -63,8 +60,7 @@ public abstract class GameServer<P extends GamePlayer> {
     private static GameServer instance;
 
     public GameServer() {
-        if (instance != null)
-            throw new IllegalStateException("Only one instance of GameServer is allowed");
+        if (instance != null) throw new IllegalStateException("Only one instance of GameServer is allowed");
         instance = this;
         MinecraftServer.setCompressionThreshold(0);
         MinecraftServer minecraftServer = MinecraftServer.init();
@@ -79,8 +75,7 @@ public abstract class GameServer<P extends GamePlayer> {
 
         registerGlobalEventListeners();
         registerCommands();
-        MinecraftServer.getConnectionManager()
-                .setPlayerProvider(this::getPlayerProvider);
+        MinecraftServer.getConnectionManager().setPlayerProvider(this::getPlayerProvider);
 
         minecraftServer.start(HOST, PORT);
     }
@@ -89,48 +84,33 @@ public abstract class GameServer<P extends GamePlayer> {
         return instance;
     }
 
-    protected abstract @NotNull P getPlayerProvider(@NotNull PlayerConnection playerConnection,
-                                                    @NotNull GameProfile gameProfile);
+    protected @NotNull
+    abstract P getPlayerProvider(@NotNull PlayerConnection playerConnection, @NotNull GameProfile gameProfile);
 
     protected abstract void onPlayerLoaded(P player, Boolean success);
 
     private void registerGlobalEventListeners() {
-        MinecraftServer.getGlobalEventHandler()
-                .addListener(AsyncPlayerConfigurationEvent.class, event -> {
-                    event.setSpawningInstance(abyss);
-                    event.getPlayer().setPermissionLevel(3);
-                })
-                .addListener(PlayerMoveEvent.class, event -> {
-                    var player = event.getPlayer();
-                    if (event.getNewPosition().y() < -130) {
-                        player.damage(DamageType.OUT_OF_WORLD, 3);
-                    }
-                })
-                .addListener(AddEntityToInstanceEvent.class, event -> {
-                    if (event.getEntity() instanceof Player player)
-                        player.refreshCommands();
-                })
+        MinecraftServer.getGlobalEventHandler().addListener(AsyncPlayerConfigurationEvent.class, event -> {
+            event.setSpawningInstance(abyss);
+            event.getPlayer().setPermissionLevel(3);
+        }).addListener(PlayerMoveEvent.class, event -> {
+            var player = event.getPlayer();
+            if (event.getNewPosition().y() < -130) {
+                player.damage(DamageType.OUT_OF_WORLD, 3);
+            }
+        })
         ;
-        MinecraftServer.getPacketListenerManager().setPlayListener(ClientChangeGameModePacket.class,
-                (packet, player) -> {
-                    player.setGameMode(packet.gameMode());
+        MinecraftServer.getPacketListenerManager().setPlayListener(ClientChangeGameModePacket.class, (packet, player) -> {
+            player.setGameMode(packet.gameMode());
 
-                });
+        });
     }
 
     private void setupDatabaseConnection() {
         CodecRegistry customRegistry = CodecRegistries.fromCodecs(new InstantCodec(), new LocaleCodec());
         CodecRegistry pojoCodecRegistry = CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build());
-        var combinedCodecRegistry = CodecRegistries.fromRegistries(
-                MongoClientSettings.getDefaultCodecRegistry(),
-                customRegistry,
-                pojoCodecRegistry
-        );
-        MongoClientSettings settings = MongoClientSettings.builder()
-                .codecRegistry(combinedCodecRegistry)
-                .applyConnectionString(new ConnectionString(MONGODB_URI))
-                .uuidRepresentation(UuidRepresentation.STANDARD)
-                .build();
+        var combinedCodecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), customRegistry, pojoCodecRegistry);
+        MongoClientSettings settings = MongoClientSettings.builder().codecRegistry(combinedCodecRegistry).applyConnectionString(new ConnectionString(MONGODB_URI)).uuidRepresentation(UuidRepresentation.STANDARD).build();
         MongoClient mongoClient = MongoClients.create(settings);
         MongoDatabase mongoDatabase = mongoClient.getDatabase(MONGODB_DATABASE);
 
@@ -141,11 +121,10 @@ public abstract class GameServer<P extends GamePlayer> {
 
     }
 
-    private void registerCommands() {
+    protected void registerCommands() {
         var commandManager = MinecraftServer.getCommandManager();
         commandManager.register(new GameModeCommand());
         commandManager.register(new StopCommand());
-        commandManager.register(new SurvivalCommand());
     }
 
     public UserRepository getUserRepository() {

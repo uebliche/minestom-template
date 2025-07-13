@@ -35,12 +35,7 @@ public class NavigatorInventory extends Inventory {
         });
         setClickableItemStack(5, ItemStack.builder(Material.GOLD_INGOT).build(), click -> {
             click.player().sendMessage("Clicked on Gold Ingot!");
-            try {
-                Objects.requireNonNull(GameRegistry.findGame(ClassicFFA.class)).enter(click.player());
-            } catch (InvocationTargetException | NoSuchMethodException | InstantiationException |
-                     IllegalAccessException e) {
-                throw new RuntimeException(e);
-            }
+            Objects.requireNonNull(GameRegistry.findGame(ClassicFFA.class)).enter(click.player());
         });
 
         setClickableItemStack(18, ItemStack.builder(Material.IRON_INGOT).build(), click -> {

@@ -5,15 +5,12 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.lang.reflect.InvocationTargetException;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.UUID;
+import java.util.*;
 
 public final class GameRegistry {
 
     private static final List<Class<? extends Game<?>>> gameClazzs = new ArrayList<>();
-    private static final HashMap<Class<? extends Game<?>>, HashMap<UUID, ? extends Game<?>>> gameInstances = new HashMap<>();
+    private static final HashMap<Class<? extends Game<?>>, HashMap<UUID, Object>> gameInstances = new HashMap<>();
 
     private static final HashMap<UUID, Game<?>> gamesById = new HashMap<>();
     private static final Logger log = LoggerFactory.getLogger(GameRegistry.class);
@@ -43,11 +40,13 @@ public final class GameRegistry {
             throw new IllegalArgumentException("Game class not registered");
         }
         var game = gameClazz.getConstructor(GameServer.class).newInstance(GameServer.getInstance());
+        var map = gameInstances.getOrDefault(gameClazz, new HashMap<>());
+        map.put(game.getId(), game);
         gamesById.put(game.getId(), game);
         return game;
     }
 
-    public static <G extends Game<?>> G findGame(Class<G> gameClass) throws InvocationTargetException, NoSuchMethodException, InstantiationException, IllegalAccessException {
+    public static <G extends Game<?>> G findGame(Class<G> gameClass) {
         if (!gameClazzs.contains(gameClass)) {
             log.error("Game class {} not registered", gameClass);
             throw new IllegalArgumentException("Game class not registered");
@@ -61,7 +60,12 @@ public final class GameRegistry {
         if (gameInstance != null) {
             return (G) gameInstance;
         } else {
-            return startGame(gameClass);
+            try {
+                return startGame(gameClass);
+            } catch (NoSuchMethodException | InvocationTargetException | InstantiationException |
+                     IllegalAccessException e) {
+                throw new RuntimeException(e);
+            }
         }
     }
 }

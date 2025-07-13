@@ -1,13 +1,17 @@
 package net.uebliche.demo;
 
+import dev.lu15.voicechat.VoiceChat;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
 import net.uebliche.demo.commands.LeaveCommand;
 import net.uebliche.demo.game.ffa.ClassicFFA;
+import net.uebliche.demo.game.ffa.ClassicFFASettings;
 import net.uebliche.demo.game.survival.Survival;
 import net.uebliche.demo.lobby.Lobby;
 import net.uebliche.game.GameRegistry;
 import net.uebliche.server.GameServer;
+import net.uebliche.demo.commands.SurvivalCommand;
+import org.bson.types.ObjectId;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,23 +33,28 @@ public class DemoServer extends GameServer<DemoPlayer> {
 
     public DemoServer() {
         lobby = new Lobby(this);
+        VoiceChat.builder(HOST, PORT).enable();
+
+        registerGames();
         testSettings();
+    }
+
+    private void registerGames() {
         GameRegistry.registerGame(Survival.class);
         GameRegistry.registerGame(ClassicFFA.class);
-        commandManager.register(new LeaveCommand(lobby));
     }
 
     @Override
-    protected @NotNull DemoPlayer getPlayerProvider(@NotNull PlayerConnection playerConnection,
-                                                    @NotNull GameProfile gameProfile) {
-        var player = new DemoPlayer(
-                playerConnection,
-                gameProfile,
-                userRepository
-                        .findOrCreate(gameProfile)
-                        .join()
-        );
-        userRepository.incrementLoginCount(gameProfile.uuid()).thenAccept(user -> {
+    protected void registerCommands() {
+        super.registerCommands();
+        commandManager.register(new LeaveCommand(() -> lobby));
+        commandManager.register(new SurvivalCommand(() -> GameRegistry.findGame(Survival.class)));
+    }
+
+    @Override
+    protected @NotNull DemoPlayer getPlayerProvider(@NotNull PlayerConnection playerConnection, @NotNull GameProfile gameProfile) {
+        var player = new DemoPlayer(playerConnection, gameProfile, userRepository.findOrCreate(gameProfile).join());
+        userRepository.incrementLoginCount(gameProfile.uuid()).thenAccept(success -> {
             log.debug("Login Count for {} +1", player.getUsername());
         });
         return player;
@@ -53,8 +62,7 @@ public class DemoServer extends GameServer<DemoPlayer> {
 
     @Override
     protected void onPlayerLoaded(DemoPlayer player, Boolean success) {
-        if (success)
-            lobby.enter(player);
+        if (success) lobby.enter(player);
         else player.kick("Failed to load");
     }
 
@@ -63,9 +71,9 @@ public class DemoServer extends GameServer<DemoPlayer> {
 //        classicFFA.testClassicString = "ja";
 //        settingsRepository.insert(classicFFA);
 
-//        var id = new ObjectId("68710dc35ebf0d9ddaaec68b");
-//        var found = settingsRepository.find(id, ClassicFFASettings.class);
-//        log.info("Found settings: {}", found);
+        var id = new ObjectId("68710dc35ebf0d9ddaaec68b");
+        var found = settingsRepository.find(id, ClassicFFASettings.class);
+        log.info("Found settings: {}", found);
 
     }
 

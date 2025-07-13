@@ -37,7 +37,7 @@ dependencies {
     api(libs.minestom)
     api(libs.minimessage)
     api(libs.mongodb)
-    implementation(libs.mongodb)
+  //  implementation(libs.mongodb)
     api(libs.polar)
     api(libs.schem)
     api(libs.terra)

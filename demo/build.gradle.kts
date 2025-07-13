@@ -12,6 +12,7 @@ dependencies {
     implementation(project(":"))
 
     runtimeOnly(libs.bundles.logger)
+    implementation("dev.lu15:simple-voice-chat-minestom:0.2.0-SNAPSHOT")
 }
 
 repositories {
@@ -24,8 +25,12 @@ repositories {
         url = uri("https://repo.codemc.io/repository/maven-public/")
         name = "codemc"
     }
+    maven {
+        url = uri("https://repo.hypera.dev/snapshots/")
+        name = "hypera"
+    }
 }
 
 application {
-    mainClass.set("net.uebliche.demo.Main")
+    mainClass.set("net.uebliche.demo.DemoServer")
 }
