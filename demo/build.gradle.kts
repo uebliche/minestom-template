@@ -10,9 +10,7 @@ group = "net.minestom"
 
 dependencies {
     implementation(project(":"))
-
     runtimeOnly(libs.bundles.logger)
-    implementation("dev.lu15:simple-voice-chat-minestom:0.2.0-SNAPSHOT")
 }
 
 repositories {

@@ -10,6 +10,20 @@ plugins {
 group = "net.uebliche"
 version = "1.0-SNAPSHOT"
 
+java {
+    toolchain {
+        languageVersion.set(JavaLanguageVersion.of(24))
+    }
+}
+
+tasks.withType<JavaCompile>().configureEach {
+    options.release.set(24)
+}
+
+tasks.test {
+    useJUnitPlatform()
+}
+
 repositories {
     mavenCentral()
     maven {
@@ -20,16 +34,10 @@ repositories {
         url = uri("https://repo.codemc.io/repository/maven-public/")
         name = "codemc"
     }
-}
-
-java {
-    toolchain {
-        languageVersion.set(JavaLanguageVersion.of(24))
+    maven {
+        url = uri("https://repo.hypera.dev/snapshots/")
+        name = "hypera"
     }
-}
-
-tasks.withType<JavaCompile>().configureEach {
-    options.release.set(24)
 }
 
 dependencies {
@@ -42,10 +50,8 @@ dependencies {
     api(libs.schem)
     api(libs.terra)
     api(libs.bundles.logger)
+    api("dev.lu15:simple-voice-chat-minestom:0.2.0-SNAPSHOT")
+    api("com.github.TogAr2:MinestomPvP:-SNAPSHOT")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
-}
-
-tasks.test {
-    useJUnitPlatform()
 }

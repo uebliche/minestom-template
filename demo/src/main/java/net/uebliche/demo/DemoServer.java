@@ -1,8 +1,10 @@
 package net.uebliche.demo;
 
 import dev.lu15.voicechat.VoiceChat;
+import io.github.togar2.pvp.MinestomPvP;
 import net.minestom.server.network.player.GameProfile;
 import net.minestom.server.network.player.PlayerConnection;
+import net.uebliche.demo.commands.ClassicFFACommand;
 import net.uebliche.demo.commands.LeaveCommand;
 import net.uebliche.demo.game.ffa.ClassicFFA;
 import net.uebliche.demo.game.ffa.ClassicFFASettings;
@@ -34,7 +36,6 @@ public class DemoServer extends GameServer<DemoPlayer> {
     public DemoServer() {
         lobby = new Lobby(this);
         VoiceChat.builder(HOST, PORT).enable();
-
         registerGames();
         testSettings();
     }
@@ -49,6 +50,7 @@ public class DemoServer extends GameServer<DemoPlayer> {
         super.registerCommands();
         commandManager.register(new LeaveCommand(() -> lobby));
         commandManager.register(new SurvivalCommand(() -> GameRegistry.findGame(Survival.class)));
+        commandManager.register(new ClassicFFACommand(() -> GameRegistry.findGame(ClassicFFA.class)));
     }
 
     @Override

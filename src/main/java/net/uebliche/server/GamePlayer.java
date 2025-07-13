@@ -1,5 +1,7 @@
 package net.uebliche.server;
 
+import io.github.togar2.pvp.player.CombatPlayer;
+import io.github.togar2.pvp.player.CombatPlayerImpl;
 import net.minestom.server.entity.EquipmentSlot;
 import net.minestom.server.entity.Player;
 import net.minestom.server.event.player.PlayerSwapItemEvent;
@@ -11,7 +13,7 @@ import net.uebliche.server.mongodb.objects.user.User;
 import org.jetbrains.annotations.ApiStatus;
 import org.jetbrains.annotations.NotNull;
 
-public class GamePlayer extends Player {
+public class GamePlayer extends CombatPlayerImpl {
 
     User user;
     Mode<?> mode;

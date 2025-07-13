@@ -5,6 +5,7 @@ import com.mongodb.MongoClientSettings;
 import com.mongodb.client.MongoClient;
 import com.mongodb.client.MongoClients;
 import com.mongodb.client.MongoDatabase;
+import io.github.togar2.pvp.MinestomPvP;
 import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandManager;
 import net.minestom.server.entity.damage.DamageType;
@@ -65,6 +66,7 @@ public abstract class GameServer<P extends GamePlayer> {
         MinecraftServer.setCompressionThreshold(0);
         MinecraftServer minecraftServer = MinecraftServer.init();
         MojangAuth.init();
+        MinestomPvP.init();
 
         instanceManager = MinecraftServer.getInstanceManager();
         commandManager = MinecraftServer.getCommandManager();
