@@ -5,6 +5,7 @@ import org.gradle.api.tasks.compile.JavaCompile
 plugins {
     id("java-library")
     id("nl.littlerobots.version-catalog-update") version "1.0.0"
+    id("maven-publish")
 }
 
 group = "net.uebliche"
@@ -54,4 +55,12 @@ dependencies {
     api("com.github.TogAr2:MinestomPvP:-SNAPSHOT")
     testImplementation(platform("org.junit:junit-bom:5.10.0"))
     testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+publishing {
+    publications {
+        create<MavenPublication>("mavenJava") {
+            from(components["java"])
+        }
+    }
 }
