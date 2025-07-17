@@ -19,9 +19,9 @@ import java.util.concurrent.ThreadLocalRandom;
 
 public class Survival extends Game<SurvivalSettings> {
 
-    private InstanceContainer instanceContainer;
+    private final InstanceContainer instanceContainer;
 
-    public Survival(GameServer gameServer) {
+    public Survival(GameServer<GamePlayer> gameServer) {
         super(gameServer);
         instanceContainer = createInstance();
         commandManager.register(new HealCommand(this));
