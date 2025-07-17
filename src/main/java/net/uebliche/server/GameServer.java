@@ -111,17 +111,54 @@ public abstract class GameServer<P extends GamePlayer> {
     private void setupDatabaseConnection() {
         CodecRegistry customRegistry = CodecRegistries.fromCodecs(new InstantCodec(), new LocaleCodec());
         CodecRegistry pojoCodecRegistry = CodecRegistries.fromProviders(PojoCodecProvider.builder().automatic(true).build());
-        var combinedCodecRegistry = CodecRegistries.fromRegistries(MongoClientSettings.getDefaultCodecRegistry(), customRegistry, pojoCodecRegistry);
-        MongoClientSettings settings = MongoClientSettings.builder().codecRegistry(combinedCodecRegistry).applyConnectionString(new ConnectionString(MONGODB_URI)).uuidRepresentation(UuidRepresentation.STANDARD).build();
+        var combinedCodecRegistry = CodecRegistries.fromRegistries(
+                MongoClientSettings.getDefaultCodecRegistry(),
+                customRegistry,
+                pojoCodecRegistry
+        );
+
+        MongoClientSettings settings = MongoClientSettings.builder()
+                .codecRegistry(combinedCodecRegistry)
+                .applyConnectionString(new ConnectionString(MONGODB_URI))
+                .uuidRepresentation(UuidRepresentation.STANDARD)
+                .build();
+
         MongoClient mongoClient = MongoClients.create(settings);
         MongoDatabase mongoDatabase = mongoClient.getDatabase(MONGODB_DATABASE);
 
+        // ✅ PING-PONG Test mit Retry
+        boolean connected = false;
+        int tries = 0;
+        while (!connected && tries < 10) {
+            try {
+                long start = System.nanoTime();
+                mongoClient.getDatabase("admin").runCommand(new org.bson.Document("ping", 1));
+                long end = System.nanoTime();
+                long durationMs = (end - start) / 1_000_000;
+
+                connected = true;
+                log.info("MongoDB connected after {} attempt(s). Ping latency: {} ms", tries + 1, durationMs);
+            } catch (Exception e) {
+                tries++;
+                log.warn("Waiting for MongoDB... attempt {}/10", tries);
+                try {
+                    Thread.sleep(1000);
+                } catch (InterruptedException ignored) {}
+            }
+        }
+
+        if (!connected) {
+            log.error("Failed to connect to MongoDB after 10 attempts. Shutting down...");
+            System.exit(1);
+        }
+
+        // ✅ Repositories initialisieren
         userRepository = new UserRepository(mongoDatabase.getCollection("user", User.class));
         settingsRepository = new SettingsRepository(mongoDatabase.getCollection("settings", ModeSettings.class));
         worldRepository = new WorldRepository(mongoDatabase.getCollection("world", World.class));
         banRepository = new BanRepository(mongoDatabase.getCollection("ban", Ban.class));
-
     }
+
 
     protected void registerCommands() {
         var commandManager = MinecraftServer.getCommandManager();
