@@ -1,7 +1,6 @@
 package net.uebliche.demo.game.survival.commands;
 
 import net.kyori.adventure.text.Component;
-import net.minestom.server.MinecraftServer;
 import net.minestom.server.command.CommandSender;
 import net.minestom.server.command.builder.CommandContext;
 import net.minestom.server.command.builder.condition.Conditions;
@@ -11,7 +10,6 @@ import net.minestom.server.entity.metadata.other.FallingBlockMeta;
 import net.minestom.server.instance.block.Block;
 import net.uebliche.demo.game.survival.Survival;
 import net.uebliche.demo.game.survival.SurvivalContainer;
-import net.uebliche.game.Game;
 import net.uebliche.game.GameCommand;
 import org.jetbrains.annotations.NotNull;
 
