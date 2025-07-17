@@ -58,11 +58,12 @@ public abstract class GameServer<P extends GamePlayer> {
 
     private final Abyss<P> abyss;
 
-    private static GameServer instance;
+    private static GameServer<GamePlayer> instance;
 
+    @SuppressWarnings("unchecked")
     public GameServer() {
         if (instance != null) throw new IllegalStateException("Only one instance of GameServer is allowed");
-        instance = this;
+        instance = (GameServer<GamePlayer>) this;
         MinecraftServer.setCompressionThreshold(0);
         MinecraftServer minecraftServer = MinecraftServer.init();
         MojangAuth.init();
@@ -82,7 +83,7 @@ public abstract class GameServer<P extends GamePlayer> {
         minecraftServer.start(HOST, PORT);
     }
 
-    public static GameServer getInstance() {
+    public static GameServer<?> getInstance() {
         return instance;
     }
 
